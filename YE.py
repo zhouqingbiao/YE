@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pygal
 
 
+# 初始化
 def init():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
@@ -28,7 +29,8 @@ def init():
 init()
 
 
-def submit(*args):
+# 数据插入或更新
+def submit():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -42,16 +44,19 @@ def submit(*args):
             sql = "UPDATE YE SET ZSYH = ?, ZFB = ?, YE = ? WHERE RQ = (SELECT DATE('NOW'))"
 
     # 捕获错误处理
+    ye = []
+    try:
+        # 预编译sql参数
+        ye = (zsyh_zsyh.get(), zfb_zfb.get(), float(zsyh_zsyh.get()) + float(zfb_zfb.get()))
 
-    # 预编译sql参数
-    ye = (zsyh_zsyh.get(), zfb_zfb.get(), float(
-        zsyh_zsyh.get()) + float(zfb_zfb.get()))
+        # 执行sql
+        c.execute(sql, ye)
 
-    # 执行sql
-    c.execute(sql, ye)
+        # 提交数据
+        conn.commit()
 
-    # 提交数据
-    conn.commit()
+    except ValueError:
+        print("Oops!  That was no valid number.  Try again...")
 
     # 清空Treeview数据
     [tree.delete(item) for item in tree.get_children()]
@@ -59,14 +64,14 @@ def submit(*args):
     # 重新生成Treeview数据
     sql = "SELECT * FROM YE ORDER BY RQ DESC"
     for row in c.execute(sql):
-        tree.insert("", "end", text=row[0], values=(
-            row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
+        tree.insert("", "end", text=row[0],
+                    values=(row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
 
     # 关闭连接
     conn.close()
 
 
-def count(*args):
+def count():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -90,8 +95,7 @@ def count(*args):
 
     # 月
     if year_month_day_StringVar.get() == "month":
-        sql = "SELECT RQ, SUM(YE) / COUNT(RQ) YE FROM YE WHERE STRFTIME('%Y', RQ) = " + \
-              year + " GROUP BY STRFTIME('%m', RQ) ORDER BY RQ ASC"
+        sql = "SELECT RQ, SUM(YE) / COUNT(RQ) YE FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " GROUP BY STRFTIME('%m', RQ) ORDER BY RQ ASC"
         for row in c.execute(sql):
             rq.append(row[0][5:7])
             ye.append(row[1])
@@ -127,7 +131,7 @@ def count(*args):
     line_chart.render_to_file('ye.svg')
 
 
-def select(*args):
+def select():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -186,7 +190,7 @@ def select_month():
     return month
 
 
-def select_month_of_year(*args):
+def select_month_of_year():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -236,6 +240,7 @@ day_Radiobutton = ttk.Radiobutton(
 # 默认选择月单选框
 year_month_day_StringVar.set('month')
 
+# 年下拉框
 year_IntVar = IntVar()
 year_Combobox = ttk.Combobox(
     frame, textvariable=year_IntVar)
@@ -246,6 +251,7 @@ if len(year_Combobox["values"]) == 0:
 else:
     year_Combobox.current(0)
 
+# 月下拉框
 month_IntVar = IntVar()
 month_Combobox = ttk.Combobox(frame, textvariable=month_IntVar)
 month_Combobox['values'] = select_month()
