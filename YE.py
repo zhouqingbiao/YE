@@ -44,7 +44,6 @@ def submit():
             sql = "UPDATE YE SET ZSYH = ?, ZFB = ?, YE = ? WHERE RQ = (SELECT DATE('NOW'))"
 
     # 捕获错误处理
-    ye = []
     try:
         # 预编译sql参数
         ye = (zsyh_zsyh.get(), zfb_zfb.get(), float(zsyh_zsyh.get()) + float(zfb_zfb.get()))
@@ -80,28 +79,33 @@ def count():
     ye = []
     title = ''
 
+    # 获取下拉框年份
     year = "'" + str(year_IntVar.get()) + "'"
+
+    # 获取下拉框月份
     if month_IntVar.get() < 10:
         month = "'" + "0" + str(month_IntVar.get()) + "'"
     else:
         month = "'" + str(month_IntVar.get()) + "'"
 
-    # 年
+    # 年统计
     if year_month_day_StringVar.get() == "year":
         sql = "SELECT RQ, SUM(YE) / COUNT(RQ) YE FROM YE GROUP BY STRFTIME('%Y', RQ) ORDER BY RQ ASC"
         for row in c.execute(sql):
             rq.append(row[0][0:4])
             ye.append(row[1])
 
-    # 月
+    # 月统计
     if year_month_day_StringVar.get() == "month":
         sql = "SELECT RQ, SUM(YE) / COUNT(RQ) YE FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " GROUP BY STRFTIME('%m', RQ) ORDER BY RQ ASC"
         for row in c.execute(sql):
             rq.append(row[0][5:7])
             ye.append(row[1])
 
+        # pygal标题
         title = str(year_IntVar.get()) + '年'
-    # 日
+
+    # 日统计
     if year_month_day_StringVar.get() == "day":
         sql = "SELECT RQ, YE FROM YE WHERE STRFTIME('%Y', RQ) = " + year + \
               " AND STRFTIME('%m', RQ) = " + month + " ORDER BY RQ ASC"
@@ -109,21 +113,31 @@ def count():
             rq.append(row[0][8:])
             ye.append(row[1])
 
+        # pygal标题
         title = str(year_IntVar.get()) + '年' + str(month_IntVar.get()) + '月'
 
     # 关闭连接
     conn.close()
 
+    # matplotlib.pyplot的X轴和Y轴
     plt.plot(rq, ye)
-    plt.scatter(rq, ye, s=100)
 
+    # matplotlib.pyplot的X轴和Y轴点的大小
+    plt.scatter(rq, ye, s=66)
+
+    # matplotlib.pyplot的X轴标签
     plt.xlabel("rq")
+
+    # matplotlib.pyplot的Y轴标签
     plt.ylabel("ye")
 
+    # matplotlib.pyplot的标题
     plt.title("YE")
 
+    # matplotlib.pyplot的展现
     plt.show()
 
+    # Basic simple line graph:
     line_chart = pygal.Line()
     line_chart.title = title + '余额'
     line_chart.x_labels = map(str, rq)
@@ -131,32 +145,37 @@ def count():
     line_chart.render_to_file('ye.svg')
 
 
+# 查询
 def select():
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
 
+    # 获取下拉框年份
     year = "'" + str(year_IntVar.get()) + "'"
+
+    # 获取下拉框月份
     if month_IntVar.get() < 10:
         month = "'" + "0" + str(month_IntVar.get()) + "'"
     else:
         month = "'" + str(month_IntVar.get()) + "'"
 
-    # 年
+    # 年查询
     if year_month_day_StringVar.get() == "year":
-        sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = " + \
-              year + " ORDER BY RQ DESC"
-    # 月
+        sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " ORDER BY RQ DESC"
+
+    # 月查询
     if year_month_day_StringVar.get() == "month":
-        sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = " + year + \
-              " AND STRFTIME('%m', RQ) = " + month + " ORDER BY RQ DESC"
+        sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " AND STRFTIME('%m', RQ) = " + month + " ORDER BY RQ DESC"
 
     # 清空Treeview数据
     [tree.delete(item) for item in tree.get_children()]
+
     # 重新生成Treeview数据
     for row in c.execute(sql):
-        tree.insert("", "end", text=row[0], values=(
-            row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
+        tree.insert("", "end", text=row[0],
+                    values=(row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
+
     # 关闭连接
     conn.close()
 
@@ -167,7 +186,9 @@ def select_year():
     c = conn.cursor()
 
     sql = "SELECT DISTINCT (STRFTIME('%Y', RQ)) YEAR FROM YE ORDER BY STRFTIME('%Y', RQ) DESC"
+
     year = []
+
     [year.append(row[0]) for row in c.execute(sql)]
 
     # 关闭连接
@@ -182,11 +203,14 @@ def select_month():
     c = conn.cursor()
 
     sql = "SELECT DISTINCT (STRFTIME('%m', RQ)) MONTH FROM YE WHERE STRFTIME('%Y', RQ) = STRFTIME('%Y', 'NOW') ORDER BY STRFTIME('%m', RQ) DESC"
+
     month = []
+
     [month.append(row[0]) for row in c.execute(sql)]
 
     # 关闭连接
     conn.close()
+
     return month
 
 
@@ -196,12 +220,17 @@ def select_month_of_year():
     c = conn.cursor()
 
     year = "'" + str(year_IntVar.get()) + "'"
-    sql = "SELECT DISTINCT (STRFTIME('%m', RQ)) MONTH FROM YE WHERE STRFTIME('%Y', RQ) = " + \
-          year + " ORDER BY STRFTIME('%m', RQ) ASC"
+
+    sql = "SELECT DISTINCT (STRFTIME('%m', RQ)) MONTH FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " ORDER BY STRFTIME('%m', RQ) ASC"
+
     month = []
+
     [month.append(row[0]) for row in c.execute(sql)]
+
     month_Combobox['values'] = month
+
     month_Combobox.current(0)
+
     # 关闭连接
     conn.close()
 
@@ -231,21 +260,25 @@ submit_button = ttk.Button(frame, text="添加", command=submit)
 
 # 年月日单选框
 year_month_day_StringVar = StringVar()
-year_Radiobutton = ttk.Radiobutton(
-    frame, text='年', variable=year_month_day_StringVar, value='year')
-month_Radiobutton = ttk.Radiobutton(frame, text='月',
-                                    variable=year_month_day_StringVar, value='month')
-day_Radiobutton = ttk.Radiobutton(
-    frame, text='日', variable=year_month_day_StringVar, value='day')
+
+year_Radiobutton = ttk.Radiobutton(frame, text='年', variable=year_month_day_StringVar, value='year')
+
+month_Radiobutton = ttk.Radiobutton(frame, text='月', variable=year_month_day_StringVar, value='month')
+
+day_Radiobutton = ttk.Radiobutton(frame, text='日', variable=year_month_day_StringVar, value='day')
+
 # 默认选择月单选框
 year_month_day_StringVar.set('month')
 
 # 年下拉框
 year_IntVar = IntVar()
-year_Combobox = ttk.Combobox(
-    frame, textvariable=year_IntVar)
+
+year_Combobox = ttk.Combobox(frame, textvariable=year_IntVar)
+
 year_Combobox.bind("<<ComboboxSelected>>", select_month_of_year)
+
 year_Combobox['values'] = select_year()
+
 if len(year_Combobox["values"]) == 0:
     pass
 else:
@@ -253,8 +286,11 @@ else:
 
 # 月下拉框
 month_IntVar = IntVar()
+
 month_Combobox = ttk.Combobox(frame, textvariable=month_IntVar)
+
 month_Combobox['values'] = select_month()
+
 if len(month_Combobox["values"]) == 0:
     pass
 else:
@@ -266,12 +302,14 @@ select_button = ttk.Button(frame, text="查询", command=select)
 # 统计Button
 count_button = ttk.Button(frame, text="统计", command=count)
 
-# 表格Treeview
-tree = ttk.Treeview(frame, show="headings",
-                    columns=("ID", "日期", "招商银行", "支付宝", '余额'))
+# 表格Treeview，不显示表格头
+tree = ttk.Treeview(frame, show="headings", columns=("ID", "日期", "招商银行", "支付宝", '余额'))
 
 for column in tree['columns']:
+    # 设置表格列以及居中
     tree.column(column, anchor='center')
+
+    # 设置表格头
     tree.heading(column, text=column)
 
 # sqlite3连接代码
@@ -280,6 +318,7 @@ c = conn.cursor()
 
 # 默认查询当前年月的数据
 sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = STRFTIME('%Y', 'NOW') AND STRFTIME('%m', RQ) = STRFTIME('%m', 'NOW') ORDER BY RQ DESC"
+
 for row in c.execute(sql):
     tree.insert("", "end", text=row[0], values=(
         row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
