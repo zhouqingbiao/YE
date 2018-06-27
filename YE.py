@@ -1,7 +1,8 @@
-from tkinter import *
-from tkinter import ttk
 import sqlite3
 from datetime import date
+from tkinter import *
+from tkinter import ttk
+
 import matplotlib.pyplot as plt
 import pygal
 
