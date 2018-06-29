@@ -8,7 +8,7 @@ import pygal
 
 
 # 初始化
-def init():
+def init(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -31,7 +31,7 @@ init()
 
 
 # 数据插入或更新
-def submit():
+def submit(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -71,7 +71,7 @@ def submit():
     conn.close()
 
 
-def count():
+def count(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -108,8 +108,7 @@ def count():
 
     # 日统计
     if year_month_day_StringVar.get() == "day":
-        sql = "SELECT RQ, YE FROM YE WHERE STRFTIME('%Y', RQ) = " + year + \
-              " AND STRFTIME('%m', RQ) = " + month + " ORDER BY RQ ASC"
+        sql = "SELECT RQ, YE FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " AND STRFTIME('%m', RQ) = " + month + " ORDER BY RQ ASC"
         for row in c.execute(sql):
             rq.append(row[0][8:])
             ye.append(row[1])
@@ -147,7 +146,7 @@ def count():
 
 
 # 查询
-def select():
+def select(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -181,7 +180,7 @@ def select():
     conn.close()
 
 
-def select_year():
+def select_year(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -198,7 +197,7 @@ def select_year():
     return year
 
 
-def select_month():
+def select_month(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -215,7 +214,7 @@ def select_month():
     return month
 
 
-def select_month_of_year():
+def select_month_of_year(*args):
     # sqlite3连接代码
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
@@ -321,8 +320,7 @@ c = conn.cursor()
 sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = STRFTIME('%Y', 'NOW') AND STRFTIME('%m', RQ) = STRFTIME('%m', 'NOW') ORDER BY RQ DESC"
 
 for row in c.execute(sql):
-    tree.insert("", "end", text=row[0], values=(
-        row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
+    tree.insert("", "end", text=row[0], values=(row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
 
 # 关闭连接
 conn.close()
