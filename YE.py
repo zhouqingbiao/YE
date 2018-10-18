@@ -62,7 +62,7 @@ def submit(*args):
     [tree.delete(item) for item in tree.get_children()]
 
     # 重新生成Treeview数据
-    sql = "SELECT * FROM YE ORDER BY RQ DESC"
+    sql = "SELECT * FROM YE WHERE STRFTIME('%Y', RQ) = STRFTIME('%Y', 'NOW') AND STRFTIME('%m', RQ) = STRFTIME('%m', 'NOW') ORDER BY RQ DESC"
     for row in c.execute(sql):
         tree.insert("", "end", text=row[0],
                     values=(row[0], row[1], round(row[2], 2), round(row[3], 2), round(row[4], 2)))
@@ -81,13 +81,10 @@ def count(*args):
     title = ''
 
     # 获取下拉框年份
-    year = "'" + str(year_IntVar.get()) + "'"
+    year = "'" + str(year_StringVar.get()) + "'"
 
     # 获取下拉框月份
-    if month_IntVar.get() < 10:
-        month = "'" + "0" + str(month_IntVar.get()) + "'"
-    else:
-        month = "'" + str(month_IntVar.get()) + "'"
+    month = "'" + str(month_StringVar.get()) + "'"
 
     # 年统计
     if year_month_day_StringVar.get() == "year":
@@ -104,7 +101,7 @@ def count(*args):
             ye.append(row[1])
 
         # pygal标题
-        title = str(year_IntVar.get()) + '年'
+        title = str(year_StringVar.get()) + '年'
 
     # 日统计
     if year_month_day_StringVar.get() == "day":
@@ -114,7 +111,7 @@ def count(*args):
             ye.append(row[1])
 
         # pygal标题
-        title = str(year_IntVar.get()) + '年' + str(month_IntVar.get()) + '月'
+        title = str(year_StringVar.get()) + '年' + str(month_StringVar.get()) + '月'
 
     # 关闭连接
     conn.close()
@@ -152,13 +149,12 @@ def select(*args):
     c = conn.cursor()
 
     # 获取下拉框年份
-    year = "'" + str(year_IntVar.get()) + "'"
+    year = "'" + str(year_StringVar.get()) + "'"
 
     # 获取下拉框月份
-    if month_IntVar.get() < 10:
-        month = "'" + "0" + str(month_IntVar.get()) + "'"
-    else:
-        month = "'" + str(month_IntVar.get()) + "'"
+    month = "'" + str(month_StringVar.get()) + "'"
+
+    sql = ""
 
     # 年查询
     if year_month_day_StringVar.get() == "year":
@@ -219,7 +215,7 @@ def select_month_of_year(*args):
     conn = sqlite3.connect('sqlite3.db')
     c = conn.cursor()
 
-    year = "'" + str(year_IntVar.get()) + "'"
+    year = "'" + str(year_StringVar.get()) + "'"
 
     sql = "SELECT DISTINCT (STRFTIME('%m', RQ)) MONTH FROM YE WHERE STRFTIME('%Y', RQ) = " + year + " ORDER BY STRFTIME('%m', RQ) ASC"
 
@@ -271,9 +267,9 @@ day_Radiobutton = ttk.Radiobutton(frame, text='日', variable=year_month_day_Str
 year_month_day_StringVar.set('month')
 
 # 年下拉框
-year_IntVar = IntVar()
+year_StringVar = StringVar()
 
-year_Combobox = ttk.Combobox(frame, textvariable=year_IntVar)
+year_Combobox = ttk.Combobox(frame, textvariable=year_StringVar)
 
 year_Combobox.bind("<<ComboboxSelected>>", select_month_of_year)
 
@@ -285,9 +281,9 @@ else:
     year_Combobox.current(0)
 
 # 月下拉框
-month_IntVar = IntVar()
+month_StringVar = StringVar()
 
-month_Combobox = ttk.Combobox(frame, textvariable=month_IntVar)
+month_Combobox = ttk.Combobox(frame, textvariable=month_StringVar)
 
 month_Combobox['values'] = select_month()
 
